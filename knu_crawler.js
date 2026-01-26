@@ -26,82 +26,158 @@ const crawler = new PlaywrightCrawler({
     },
 
     async requestHandler({ request, page, log }) {
-        log.info(`접속 성공: ${request.url}`);
+        const currentUrl = request.url;
+        log.info(`접속 시도: ${currentUrl}`);
 
-        try {
-            // 특정 테이블 이름 대신, '게시글 제목(.bo_tit)'이 뜰 때까지 기다림
-            // 이 클래스는 그누보드(학교사이트)에서 무조건 사용함
-            await page.waitForSelector('.bo_tit', { timeout: 10000 });
-        } catch (e) {
-            log.error('게시글 목록을 찾을 수 없습니다. (선택자 불일치)');
-            return;
-        }
+        let notices = [];
+        let sourceName = '';
 
-        const notices = await page.evaluate(() => {
-            // 모든 테이블의 행(tr)을 가져옴
-            const rows = document.querySelectorAll('tr');
-            const result = [];
-            const seenLinks = new Set();
+        // -------------------------------------------------------
+        // [CASE 1] 컴퓨터학부 (CSE)
+        // -------------------------------------------------------
+        if (currentUrl.includes('cse.knu.ac.kr')) {
+            sourceName = '컴퓨터학부';
+            try {
+                await page.waitForLoadState('networkidle', { timeout: 15000 });
+                await page.waitForSelector('.bo_tit', { timeout: 15000 });
+                
+                notices = await page.evaluate((sourceName) => {
+                    const rows = document.querySelectorAll('tbody tr');
+                    const result = [];
+                    const seenTitles = new Set();
+                    rows.forEach(row => {
+                        const subjectElem = row.querySelector('.bo_tit a');
+                        const dateElem = row.querySelector('.td_date') || row.querySelector('.td_datetime');
+                        if (subjectElem && dateElem) {
+                            const title = subjectElem.innerText.trim();
+                            const link = subjectElem.href;
+                            const date = dateElem.innerText.trim();
+                            if (title.length > 0 && !seenTitles.has(title)) {
+                                seenTitles.add(title);
+                                result.push({ title, link, date, source: sourceName });
+                            }
+                        }
+                    });
+                    return result;
+                }, sourceName);
+            } catch (e) { 
+                log.error(`[${sourceName}] 로딩 실패! 원인: ${e.message}`);
+            }
 
-            rows.forEach(row => {
-                // 각 행 안에 제목(bo_tit)과 날짜(date)가 있는지 검사
-                const subjectElem = row.querySelector('.bo_tit a');
-                const dateElem = row.querySelector('.td_date') || row.querySelector('.td_datetime');
+        // -------------------------------------------------------
+        // [CASE 2] 경북대 학사 공지 (WBBS)
+        // -------------------------------------------------------
+        } else if (currentUrl.includes('knu.ac.kr/wbbs')) {
+            sourceName = '경북대 학사공지';
+            try {
+                await page.waitForLoadState('networkidle', { timeout: 15000 });
+                await page.waitForSelector('.subject', { timeout: 15000 });
 
-                if (subjectElem && dateElem) {
-                    const title = subjectElem.innerText.trim();
-                    const link = subjectElem.href;
-                    const date = dateElem.innerText.trim();
+                notices = await page.evaluate((sourceName) => {
+                    const rows = document.querySelectorAll('tbody tr');
+                    const result = [];
+                    const seenTitles = new Set();
+                    rows.forEach(row => {
+                        const subjectElem = row.querySelector('.subject a');
+                        const dateElem = row.querySelector('.date');
+                        if (subjectElem && dateElem) {
+                            const title = subjectElem.innerText.trim();
+                            const rawHref = subjectElem.getAttribute('href');
+                            const date = dateElem.innerText.trim();
+                            const match = rawHref.match(/'([^']+)'/g);
+                            let realLink = rawHref;
+                            if (match && match.length >= 3) {
+                                const bbs_cde = match[0].replace(/'/g, '');
+                                const note_div = match[1].replace(/'/g, '');
+                                const bltn_no = match[2].replace(/'/g, '');
+                                const menu_idx = 42; 
+                                realLink = `https://www.knu.ac.kr/wbbs/wbbs/bbs/btin/stdViewBtin.action?search_type=&search_text=&popupDeco=&note_div=${note_div}&bltn_no=${bltn_no}&menu_idx=${menu_idx}&bbs_cde=${bbs_cde}`;
+                            }
+                            if (title.length > 0 && !seenTitles.has(title)) {
+                                seenTitles.add(title);
+                                result.push({ title, link: realLink, date, source: sourceName });
+                            }
+                        }
+                    });
+                    return result;
+                }, sourceName);
+            } catch (e) { 
+                log.error(`[${sourceName}] 로딩 실패! 원인: ${e.message}`);
+            }
 
-                    // 제목이 비어있지 않고, 처음 보는 링크일 때만 추가
-                    if (title.length > 0 && !seenLinks.has(link)) {
-                        seenLinks.add(link); // 장부에 기록
-                        result.push({ title, link, date });
-                    }
-                }
-            });
-            return result;
-        });
+        // -------------------------------------------------------
+        // [CASE 3] AI융합대학 (COSS)
+        // -------------------------------------------------------
+        } else if (currentUrl.includes('home.knu.ac.kr/HOME/aic')) {
+            sourceName = 'AI융합대학';
+            try {
+                await page.waitForLoadState('networkidle', { timeout: 15000 });
+                await page.waitForSelector('.subject', { timeout: 15000 });
 
-        log.info(`총 ${notices.length}개의 공지사항을 발견했습니다.`);
+                notices = await page.evaluate((sourceName) => {
+                    const rows = document.querySelectorAll('tbody tr');
+                    const result = [];
+                    const seenTitles = new Set();
 
-        // 3. DB 저장
+                    rows.forEach(row => {
+                        const subjectElem = row.querySelector('.subject a');
+                        const dateElem = row.querySelector('.date');
+
+                        if (subjectElem && dateElem) {
+                            const title = subjectElem.innerText.trim();
+                            const date = dateElem.innerText.trim();
+                            const link = subjectElem.href; 
+
+                            // '공지'라고 적힌 헤더 행은 제외하기 위해 제목 길이가 있는지 체크
+                            if (title.length > 0 && !seenTitles.has(title)) {
+                                seenTitles.add(title);
+                                result.push({ title, link, date, source: sourceName });
+                            }
+                        }
+                    });
+                    return result;
+                }, sourceName);
+            } catch (e) { 
+                log.error(`[${sourceName}] 로딩 실패: ${e.message}`);
+            }
+        }    
+
+        log.info(`✅ [${sourceName}] 유효 데이터 ${notices.length}개 발견`);
+
+        // DB 저장
         let newCount = 0;
         for (const notice of notices) {
             try {
-                // 이미 있는 링크면(ON CONFLICT) 아무것도 안 함(DO NOTHING)
                 const query = `
-                    INSERT INTO knu_notices (title, post_date, link)
-                    VALUES ($1, $2, $3)
-                    ON CONFLICT (link) DO NOTHING
+                    INSERT INTO knu_notices (title, post_date, link, source)
+                    VALUES ($1, $2, $3, $4)
+                    ON CONFLICT (title) DO NOTHING
                     RETURNING id
-                `; 
-                // RETURNING id를 쓰면, 새로 저장된 것만 결과가 반환됨
-                const res = await pool.query(query, [notice.title, notice.date, notice.link]);
-                
-                if (res.rowCount > 0) newCount++; // 새로 저장된 개수 카운트
+                `;
+                const res = await pool.query(query, [notice.title, notice.date, notice.link, notice.source]);
+                if (res.rowCount > 0) newCount++;
             } catch (err) {
                 console.error(`DB 에러: ${err.message}`);
             }
         }
         
-        if (newCount > 0) {
-            log.info(`🎉 새로운 공지사항 ${newCount}개를 저장했습니다!`);
-        } else {
-            log.info(`👍 새로운 공지사항이 없습니다. (모두 최신 상태)`);
-        }
+        if (newCount > 0) log.info(`🎉 [${sourceName}] ${newCount}개 저장 완료!`);
+        else log.info(`👍 [${sourceName}] 새로운 글 없음`);
     },
 });
 
 (async () => {
     try {
         console.log('크롤링 시작...');
-        await crawler.run(['https://cse.knu.ac.kr/bbs/board.php?bo_table=sub5_1&lang=kor']);
+        await crawler.run([
+            'https://cse.knu.ac.kr/bbs/board.php?bo_table=sub5_1&lang=kor',         // 컴퓨터학부
+            'https://www.knu.ac.kr/wbbs/wbbs/bbs/btin/stdList.action?menu_idx=42',  // 학사공지
+            'https://home.knu.ac.kr/HOME/aic/sub.htm?nav_code=aic1635293208'        // COSS
+        ]);
         console.log('크롤링 완료!');
     } catch (error) {
         console.error('실행 중 에러 발생:', error);
     } finally {
         await pool.end();
-        console.log('DB 연결 종료');
     }
 })();
