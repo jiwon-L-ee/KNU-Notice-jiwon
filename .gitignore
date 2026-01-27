@@ -1,3 +1,39 @@
+# ==========================
+# [Global] 모든 폴더 공통 적용
+# ==========================
+
+# 의존성 모듈 (frontend, backend 어디든 무시)
 node_modules/
-storage/
+.pnp
+.pnp.js
+
+# 환경 변수 파일 (보안 중요!)
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 운영체제 파일
+.DS_Store
+
+# 로그 파일
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ==========================
+# [Build & Test] 빌드 및 테스트 결과물
+# ==========================
+
+# 빌드 결과물 (frontend/build, backend/dist 등 모두 무시됨)
+/build
+/dist
+
+# 테스트 커버리지
+/coverage
+
+# ==========================
+# [Server] 백엔드/기타 관련
+# ==========================
+storage/
