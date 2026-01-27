@@ -1,17 +1,7 @@
 import { PlaywrightCrawler } from 'crawlee';
-import pg from 'pg';
 import 'dotenv/config';
-
-const { Pool } = pg;
-
-// DB 연결
-const pool = new Pool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_NAME,
-    password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT,
-});
+import { pool } from '../db.js';
+import { extractAndSaveDates } from '../services/noticeProcessor.js';
 
 // 날짜 변환 함수
 function normalizeDate(dateStr) {
@@ -208,13 +198,23 @@ const crawler = new PlaywrightCrawler({
                 
                 const safeDate = normalizeDate(item.date);
                 
-                await pool.query(query, [
+                const res = await pool.query(query, [
                     item.source, 
                     item.title, 
                     content,
                     item.link,
                     safeDate
                 ]);
+
+                const noticeId = res.rows[0].id;
+
+                // AI로 날짜 추출 및 저장
+                try {
+                    await extractAndSaveDates({ id: noticeId, content: content });
+                    log.info(`AI 분석 완료: ${item.title.substring(0, 15)}...`);
+                } catch (aiErr) {
+                    log.warning(`AI 분석 실패 (${item.title}): ${aiErr.message}`);
+                }
 
                 newCount++;
                 log.info(`저장 완료: ${item.title.substring(0, 15)}...`);

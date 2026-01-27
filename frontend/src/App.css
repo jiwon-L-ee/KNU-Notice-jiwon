@@ -114,10 +114,13 @@ body::before{
 .search-container {
   max-width: 600px;
   margin: 0 auto 30px auto;
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
 
 .search-input {
-  width: 100%;
+  flex: 1;
   padding: 15px 25px;
   border-radius: 30px;
   border: 2px solid #eee;
@@ -129,6 +132,27 @@ body::before{
 .search-input:focus {
   border-color: #b11030;
   box-shadow: 0 4px 12px rgba(177, 16, 48, 0.1);
+}
+
+.dept-select {
+  min-width: 180px;
+  padding: 15px 40px 15px 20px;
+  border-radius: 30px;
+  border: 2px solid #eee;
+  font-size: 16px;
+  background-color: #fff;
+  cursor: pointer;
+  transition: all 0.3s;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+}
+
+.dept-select:focus {
+  border-color: #b11030;
+  outline: none;
 }
 
 /* 필터 버튼 스타일 */
@@ -249,6 +273,27 @@ body::before{
   box-shadow: 0 4px 6px rgba(0,0,0,0.05);
   border-radius:12px;
   margin-bottom:30px;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.keyword-btn {
+  background-color: #b11030;
+  color: white;
+  border: 2px solid #b11030;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.keyword-btn:hover {
+  background-color: white;
+  color: #b11030;
 }
 .user-name{
   font-size:1.1rem;
@@ -470,4 +515,118 @@ body::before{
 
 .reset-btn:hover .reset-icon {
   transform: rotate(-180deg); /* 호버 시 아이콘이 슥 돌아감 */
+}
+
+/* 키워드 모달 스타일 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.keyword-modal {
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+  width: 90%;
+  text-align: center;
+}
+
+.keyword-modal h2 {
+  margin-bottom: 20px;
+  color: #b11030;
+  font-weight: 800;
+}
+
+.keyword-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.keyword-tag {
+  padding: 10px 15px;
+  border: 2px solid #ddd;
+  border-radius: 25px;
+  background-color: #fff;
+  color: #666;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.keyword-tag:hover {
+  border-color: #b11030;
+  color: #b11030;
+}
+
+.keyword-tag.active {
+  background-color: #b11030;
+  color: white;
+  border-color: #b11030;
+}
+
+.keyword-tag.active::after {
+  content: '✓';
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.save-btn {
+  padding: 12px 30px;
+  background-color: #b11030;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.save-btn:hover {
+  background-color: #8e0d26;
+  transform: translateY(-2px);
+}
+
+.save-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.selected-keywords {
+  margin-bottom: 20px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+}
+
+.selected-keywords p {
+  margin: 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.no-notices {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+  font-size: 18px;
+  font-weight: 500;
 }
