@@ -1,39 +1,40 @@
-
-/* 1. 구글 폰트에서 Noto Sans KR (굵은 버전 포함) 가져오기 */
+/* 1. 구글 폰트에서 Noto Sans KR 가져오기 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
 
 body {
   font-family: 'Noto Sans KR', sans-serif;
   -webkit-font-smoothing: antialiased;
-  background-color: #f8f9fa; /* 기본 배경색 */
+  background-color: #f8f9fa;
   color: #333;
   margin: 0;
 }
 
-body::before{
-  content:"";
-  position:fixed;
-  top:0; left:0; right:0; bottom:0;
-  background:inherit;
-  opacity:0.05;
-  z-index:-1;
+body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: inherit;
+  opacity: 0.05;
+  z-index: -1;
 }
 
-/* 2. 메인 제목 굵게 (제일 눈에 띄게) */
+/* 2. 메인 제목 굵게 */
 .header h1 {
-  font-weight: 900; /* 가장 두꺼운 눈에 띄는 굵기 */
+  font-weight: 900;
   font-size: 2.2rem;
   letter-spacing: -1px;
   margin-top: 10px;
 }
 
-/* [2] 로그인 & 회원가입 화면 (Auth) */
+/* [2] 로그인 & 회원가입 & 마이페이지 박스 (Auth) */
 .auth-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh; /* height 대신 min-height로 내용이 많아져도 잘리지 않게 수정 */
+  padding: 40px 0;   /* 위아래 여백 추가 */
   background: linear-gradient(135deg, #f5f7fa 0%, #e8ebee 100%);
+  box-sizing: border-box;
 }
 
 .login-box {
@@ -42,7 +43,7 @@ body::before{
   border-radius: 20px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 400px;
+  max-width: 420px; /* 폭을 살짝 넓힘 (Textarea 고려) */
   display: flex;
   flex-direction: column;
   gap: 1.2rem;
@@ -55,25 +56,50 @@ body::before{
 }
 
 .login-box h2 {
-  margin: 0;
-  color: #b11030; /* 경북대 Crimson */
+  margin: 0 0 10px 0;
+  color: #b11030;
   font-size: 1.8rem;
   text-align: center;
   font-weight: 800;
+  letter-spacing: -0.5px;
 }
 
-.login-box input, .login-box select {
+/* ★★★ 수정됨: input, select, textarea 스타일 통일 ★★★ */
+.login-box input, 
+.login-box select, 
+.login-box textarea {
   width: 100%;
   padding: 0.8rem;
   border: 1px solid #ddd;
   border-radius: 10px;
   font-size: 1rem;
+  font-family: 'Noto Sans KR', sans-serif; /* 폰트 상속 */
+  box-sizing: border-box; /* 패딩 포함 크기 계산 */
+  transition: all 0.2s;
 }
 
-.login-box input:focus {
+/* Textarea 전용 스타일 */
+.login-box textarea {
+  resize: vertical; /* 세로 크기 조절만 허용 */
+  line-height: 1.5;
+  min-height: 100px;
+}
+
+.login-box input:focus, 
+.login-box select:focus, 
+.login-box textarea:focus {
   outline: none;
   border-color: #b11030;
   box-shadow: 0 0 0 3px rgba(177, 16, 48, 0.1);
+}
+
+/* ★★★ 추가됨: 폼 라벨 스타일 (마이페이지용) ★★★ */
+.login-box label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 700;
+  color: #555;
+  font-size: 0.95rem;
 }
 
 .login-box button {
@@ -83,9 +109,11 @@ body::before{
   color: white;
   border: none;
   border-radius: 10px;
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 1.05rem;
   cursor: pointer;
   transition: all 0.2s;
+  margin-top: 10px;
 }
 
 .login-box button:hover {
@@ -100,13 +128,13 @@ body::before{
   padding: 20px;
   position: relative;
   z-index: 1;
-  background-color: transparent; /* 배경색 제거 */
+  background-color: transparent;
 }
 
 .header h1 {
   text-align: center;
   font-weight: 800;
-  color: #b11030; /* 파란색에서 빨간색으로 변경 */
+  color: #b11030;
   margin-bottom: 10px;
 }
 
@@ -155,32 +183,6 @@ body::before{
   outline: none;
 }
 
-/* 필터 버튼 스타일 */
-.filter-container {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 30px;
-  flex-wrap: wrap;
-}
-
-.filter-btn {
-  padding: 8px 20px;
-  border: 1px solid #eee;
-  border-radius: 20px;
-  background-color: #fff;
-  color: #666;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.filter-btn.active {
-  background-color: #b11030; /* 파란색 활성화 색상을 빨간색으로 변경 */
-  color: white;
-  border-color: #b11030;
-}
-
 /* 공지사항 카드 */
 .notice-card {
   background: white;
@@ -196,27 +198,14 @@ body::before{
 .notice-card:hover {
   transform: translateX(8px);
   border-left-color: #b11030;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
-
-.notice-card:hover {
-  background-color: #fdfdfd;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.view-more{
-  color: var(--knu-red);
-  font-weight:bold;
-  font-size:0.9rem;
-  padding: 4px 8px;
-  border-radius:4px;
-  transition: all 0.2s;
+  background-color: #fdfdfd;
 }
 
 .dept-tag {
   display: inline-block;
   padding: 4px 10px;
-  background-color: rgba(177, 16, 48, 0.1); /* 연한 진홍색 배경 */
+  background-color: rgba(177, 16, 48, 0.1);
   color: #b11030;
   font-size: 12px;
   font-weight: 700;
@@ -225,10 +214,11 @@ body::before{
 }
 
 .notice-title {
-  font-size: 18px;
+  font-size: 1.2rem;
   font-weight: 700;
-  margin-bottom: 8px;
-  color: #222;
+  margin: 10px 0;
+  color: #111;
+  line-height: 1.4;
 }
 
 .notice-date {
@@ -236,299 +226,174 @@ body::before{
   font-size: 0.85rem;
 }
 
-.top-nav {
+:root {
+  --knu-red: #b11030;
+  --knu-dark: #8b0d26;
+}
+
+.user-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #eee;
-  margin-bottom: 30px;
-}
-
-/* 로그아웃 버튼 */
-.logout-btn {
-  background: none;
-  border: 1px solid #ccc;
-  padding: 5px 12px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.logout-btn:hover {
-  background: #f0f0f0;
-}
-
-:root{
-  --knu-red: #b11030;
-  --knu-dark:#8b0d26;
-}
-
-.user-bar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
   padding: 15px 25px;
   background-color: #fff;
   border-bottom: 3px solid var(--knu-red);
   box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-  border-radius:12px;
-  margin-bottom:30px;
+  border-radius: 12px;
+  margin-bottom: 30px;
 }
 
 .header-buttons {
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 
-.keyword-btn {
-  background-color: #b11030;
-  color: white;
-  border: 2px solid #b11030;
-  padding: 8px 18px;
+/* ★★★ 수정됨: 버튼 스타일 통합 및 마이페이지 버튼 추가 ★★★ */
+.keyword-btn, .mypage-btn, .logout-btn {
+  padding: 8px 16px;
   border-radius: 6px;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.2s;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+/* 키워드 버튼 (강조) */
+.keyword-btn {
+  background-color: var(--knu-red);
+  color: white;
+  border: 2px solid var(--knu-red);
+}
 .keyword-btn:hover {
   background-color: white;
-  color: #b11030;
-}
-.user-name{
-  font-size:1.1rem;
+  color: var(--knu-red);
 }
 
-.user-dept-grade{
-  margin-left:15px;
-  color:#666;
-  font-size:0.95rem;
+/* 마이페이지 버튼 (중간 강조 - 회색톤 or 아웃라인) */
+.mypage-btn {
+  background-color: white;
+  color: #444;
+  border: 2px solid #ddd;
+}
+.mypage-btn:hover {
+  border-color: var(--knu-red);
+  color: var(--knu-red);
+  background-color: #fff5f5;
 }
 
-.logout-btn{
-  background-color:white;
-  color:var(--knu-red);
-  border: 2px solid var(--knu-red);
-  padding: 8px 18px;
-  border-radius:6px;
-  font-weight: bold;
-  cursor:pointer;
-  transition: all 0.2s;
+/* 로그아웃 버튼 (아웃라인) */
+.logout-btn {
+  background-color: white;
+  color: #666;
+  border: 2px solid #ccc;
 }
-
-.logout-btn:hover{
-  background-color:var(--knu-red);
-  color:white;
-}
-
-.reset-btn{
-  background-color:#f1f1f1;
+.logout-btn:hover {
+  background-color: #f1f1f1;
   color: #333;
-  border:1px solid #ccc;
-  padding:4px 12px;
-  border-radius:20px;
-  font-size:0.85rem;
-  margin-left:15px;
-  cursor:pointer;
+  border-color: #bbb;
 }
 
-.reset-btn:hover{
-  background-color:#e0e0e0;
-}
-
-/* 3. 상세보기는 오른쪽 */
-.view-more {
-  color: var(--knu-red) !important;
-  font-weight: bold;
-  font-size: 0.9rem;
-  text-align: right;               
-  margin-left: auto;                
-  cursor: pointer;
-}
-
-.card-footer {
-  display: flex !important;          
-  justify-content: space-between !important; 
-  align-items: center;
-  margin-top: 15px;
-  padding-top: 12px;
-  border-top: 1px solid #f0f0f0;
-  width: 100%;                       
-}
-
-.auth-links span{
-  font-size:0.85rem;
-  color:#888;
-  margin: 0 10px;
-}
-
-/* 3. 공지사항 제목 굵게 */
-.notice-title {
-  font-weight: 700; /* 강한 강조 */
-  font-size: 1.2rem;
-  line-height: 1.4;
-  color: #111;
-  margin: 10px 0;
-}
-
-/* 4. 필터 버튼 굵게 (선택된 것 강조) */
-.filter-btn {
-  font-weight: 500;
-  transition: all 0.2s;
-}
-
-.filter-btn.active {
-  font-weight: 800; /* 활성화 시 더 두껍게 */
-}
-
-/* 5. 로그인/회원가입 폼 제목 및 버튼 */
-.login-box h2 {
-  font-weight: 800;
-  letter-spacing: -0.5px;
-}
-
-.login-box button {
-  font-weight: 700;
-  font-size: 1.05rem;
-  padding: 12px;
-}
-
-/* 6. 사용자 정보 바 (이름 강조) */
 .user-name b {
   font-weight: 900;
   color: #000;
+  font-size: 1.1rem;
 }
 
 .user-dept-grade {
+  margin-left: 10px;
+  color: #666;
   font-weight: 500;
-}
-.pagination{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:10px;
-  margin:40px 0 60px 0;
+  font-size: 0.95rem;
 }
 
-.page-btn{
-  width:35px;
-  height:35px;
+/* 링크 및 유틸리티 */
+.auth-links {
+  text-align: center;
+  margin-top: 10px;
+}
+.auth-links span {
+  font-size: 0.85rem;
+  color: #888;
+  margin: 0 10px;
+  cursor: pointer;
+}
+.auth-links span:hover {
+  text-decoration: underline;
+  color: var(--knu-red);
+}
+
+.toggle-link {
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+  cursor: pointer;
+  margin-top: 15px;
+}
+.toggle-link:hover {
+  color: var(--knu-red);
+  text-decoration: underline;
+}
+
+/* 페이지네이션 */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin: 40px 0 60px 0;
+}
+
+.page-btn {
+  width: 35px;
+  height: 35px;
   border: 1px solid #ddd;
   background-color: #fff;
-  border-radius:4px;
-  font-weight:bold;
-  cursor:pointer;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
   transition: all 0.2s;
+  color: #666;
 }
 
-.page-btn:hover{
-  border-color:var(--knu-red);
-  color:var(--knu-red);
+.page-btn:hover {
+  border-color: var(--knu-red);
+  color: var(--knu-red);
 }
 
-.page-btn.active{
-  background-color:var(--knu-red);
-  color:white;
-  border-color:var(--knu-red);
+.page-btn.active {
+  background-color: var(--knu-red);
+  color: white;
+  border-color: var(--knu-red);
 }
 
+/* 배경 오버레이 */
 .bg-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  /* 파일을 못찾을 경우를 대비해 인터넷 주소를 CSS에 확실히 박아둡니다 */
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
   background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Kyungpook_National_University_logo.png/600px-Kyungpook_National_University_logo.png');
   background-repeat: no-repeat;
   background-position: center;
   background-size: 40%;
-  opacity: 0.08; /* 은은하게 보임 */
-  z-index: -1;   /* 모든 요소 뒤에 배치 */
+  opacity: 0.08;
+  z-index: -1;
   pointer-events: none;
 }
 
-.auth-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  /* 배경 그라데이션에 투명도를 주어 로고가 비치게 함 */
-  background: linear-gradient(135deg, rgba(245, 247, 250, 0.7) 0%, rgba(232, 235, 238, 0.7) 100%);
-  position: relative;
-  z-index: 1;
-}
-
-.container {
-  max-width: 900px;
-  margin: 40px auto;
-  padding: 20px;
-  position: relative;
-  z-index: 1;
-  background-color: transparent; /* 배경 로고가 보이도록 투명 설정 */
-}
-
-.info-bar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:20px;
-}
-
-.reset-btn{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  background-color:#f8f9fa;
-  color:#495057;
-  border:1px solid #dee2e6;
-  padding: 6px 14px;
-  border-radius: 20px; /* 둥근 캡슐 모양 */
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-/* 마우스 올렸을 때 효과 */
-.reset-btn:hover {
-  background-color: #e9ecef;
-  color: #b11030; /* 경북대 상징색 포인트 */
-  border-color: #b11030;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-/* 클릭했을 때 살짝 눌리는 느낌 */
-.reset-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-}
-
-/* 회전 아이콘 애니메이션 */
-.reset-icon {
-  font-size: 16px;
-  font-weight: bold;
-  transition: transform 0.3s ease;
-}
-
-.reset-btn:hover .reset-icon {
-  transform: rotate(-180deg); /* 호버 시 아이콘이 슥 돌아감 */
-}
-
-/* 키워드 모달 스타일 */
+/* 모달 스타일 */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  backdrop-filter: blur(2px);
 }
 
 .keyword-modal {
@@ -549,26 +414,28 @@ body::before{
 
 .keyword-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 10px;
   margin-bottom: 20px;
 }
 
 .keyword-tag {
-  padding: 10px 15px;
-  border: 2px solid #ddd;
-  border-radius: 25px;
+  padding: 10px;
+  border: 2px solid #eee;
+  border-radius: 12px;
   background-color: #fff;
-  color: #666;
+  color: #555;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
+  font-size: 0.9rem;
 }
 
 .keyword-tag:hover {
   border-color: #b11030;
   color: #b11030;
+  background-color: #fff5f5;
 }
 
 .keyword-tag.active {
@@ -577,25 +444,16 @@ body::before{
   border-color: #b11030;
 }
 
-.keyword-tag.active::after {
-  content: '✓';
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 14px;
-  font-weight: bold;
-}
-
 .save-btn {
   padding: 12px 30px;
   background-color: #b11030;
   color: white;
   border: none;
-  border-radius: 25px;
+  border-radius: 30px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
+  box-shadow: 0 4px 10px rgba(177, 16, 48, 0.2);
 }
 
 .save-btn:hover {
@@ -603,30 +461,21 @@ body::before{
   transform: translateY(-2px);
 }
 
-.save-btn:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-  transform: none;
-}
-
 .selected-keywords {
   margin-bottom: 20px;
-  padding: 10px;
+  padding: 12px;
   background-color: #f8f9fa;
   border-radius: 10px;
-  border: 1px solid #ddd;
-}
-
-.selected-keywords p {
-  margin: 0;
-  font-size: 14px;
-  color: #333;
+  border: 1px solid #eee;
 }
 
 .no-notices {
   text-align: center;
-  padding: 40px 20px;
-  color: #666;
-  font-size: 18px;
+  padding: 60px 20px;
+  color: #888;
+  font-size: 16px;
   font-weight: 500;
+  background: white;
+  border-radius: 15px;
+  border: 1px dashed #ddd;
 }

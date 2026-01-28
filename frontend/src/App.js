@@ -6,6 +6,8 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [isResetMode, setIsResetMode] = useState(false);
+  const [isMyPage, setIsMyPage] = useState(false);
+
   const [userInfo, setUserInfo] = useState(null);
   const [notices, setNotices] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -26,18 +28,24 @@ function App() {
     }
   }, [isLoggedIn]);
 
-  // 로그인 직후 키워드 체크
+  // [수정됨] useEffect 분리: 로그인 시 모달 표시
   useEffect(() => {
-    if (isLoggedIn && userInfo) {
-      // 로그인 시 항상 키워드 초기화 및 모달 표시
-      setSelectedKeywords([]);
-      // 유저 학과에 따라 dept 설정, 없으면 전체
+    if (isLoggedIn) {
+        // 로그인 하면 항상 키워드 가이드 모달 띄우기 (마이페이지가 아닐 때)
+        // isMyPage 상태는 초기값이 false이므로 로그인 직후엔 보통 false입니다.
+        setShowGuideModal(true);
+    }
+  }, [isLoggedIn]);
+
+  // [수정됨] useEffect 분리: 사용자 정보(userInfo)가 변경되면 부서 자동 선택
+  useEffect(() => {
+    if (userInfo) {
       const deptOptions = ["전체", "경북대 학사공지", "컴퓨터학부", "전자공학부", "AI융합대학"];
+      // 유저 학과가 옵션에 있으면 해당 학과 선택, 없으면 '전체'
       const userDept = deptOptions.includes(userInfo.department) ? userInfo.department : '전체';
       setSelectedDept(userDept);
-      setShowGuideModal(true);
     }
-  }, [isLoggedIn, userInfo]);
+  }, [userInfo]);
 
   // selectedDept 변경 시 페이지 리셋
   useEffect(() => {
@@ -88,6 +96,7 @@ function App() {
       name: e.target.name.value,
       grade: e.target.grade.value,
       department: e.target.dept.value,
+      experience_summary: e.target.experience.value
     };
     fetch('http://127.0.0.1:5000/auth/register', {
       method: 'POST',
@@ -105,6 +114,33 @@ function App() {
       });
   };
 
+  const handleUpdateUser = (e) => {
+    e.preventDefault();
+    const formData = {
+      student_id: userInfo.student_id,
+      name: e.target.name.value,
+      grade: e.target.grade.value,
+      department: e.target.dept.value,
+      experience_summary: e.target.experience.value
+    };
+
+    fetch('http://127.0.0.1:5000/auth/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData),
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert("정보가 수정되었습니다.");
+            setUserInfo(data.user); // 상태 업데이트 -> useEffect([userInfo]) 실행됨 -> 학과 자동 변경
+            setIsMyPage(false);
+        } else {
+            alert(data.message);
+        }
+    });
+  };
+
   const handResetPassword = (e) => {
     e.preventDefault();
     fetch('http://127.0.0.1:5000/auth/reset-password', {
@@ -120,7 +156,6 @@ function App() {
   };
 
   // --- 3. 필터링 및 페이지네이션 ---
-
   const filteredNotices = notices.filter(notice => {
     const matchesDept = selectedDept === '전체' || notice.dept === selectedDept;
     const matchesKeywords = selectedKeywords.length === 0 || selectedKeywords.some(keyword => notice.title.toLowerCase().includes(keyword.toLowerCase()));
@@ -140,6 +175,46 @@ function App() {
 
   // --- [화면 렌더링] ---
   if (isLoggedIn) {
+    if (isMyPage) {
+        return (
+            <div className="auth-wrapper">
+                <div className="bg-overlay"></div>
+                <form className="login-box" onSubmit={handleUpdateUser} style={{maxWidth: '500px'}}>
+                    <h2>마이페이지 (정보 수정)</h2>
+                    <div style={{textAlign:'left', width: '100%', marginBottom: '10px'}}>
+                        <label>이름</label>
+                        <input name="name" defaultValue={userInfo.name} required />
+                    </div>
+                    <div style={{textAlign:'left', width: '100%', marginBottom: '10px'}}>
+                        <label>학년</label>
+                        <input name="grade" type="number" defaultValue={userInfo.grade} required />
+                    </div>
+                    <div style={{textAlign:'left', width: '100%', marginBottom: '10px'}}>
+                        <label>학과</label>
+                        <select name="dept" defaultValue={userInfo.department} required style={{width: '100%', padding: '10px'}}>
+                            <option value="컴퓨터학부">컴퓨터학부</option>
+                            <option value="전자공학부">전자공학부</option>
+                            <option value="AI융합대학">AI융합대학</option>
+                            <option value="경북대 학사공지">경북대 학사공지</option>
+                        </select>
+                    </div>
+                    <div style={{textAlign:'left', width: '100%', marginBottom: '10px'}}>
+                        <label>활동 이력 및 관심사</label>
+                        <textarea 
+                            name="experience" 
+                            defaultValue={userInfo.experience_summary || ''} 
+                            rows="5"
+                            placeholder="동아리, 프로젝트 경험, 관심 분야 등을 적어주세요."
+                            style={{width: '100%', padding: '10px', marginTop: '5px'}}
+                        />
+                    </div>
+                    <button type="submit">수정 완료</button>
+                    <p onClick={() => setIsMyPage(false)} className="toggle-link">돌아가기</p>
+                </form>
+            </div>
+        );
+    }
+
     return (
       <div className="container">
         <div className="bg-overlay"></div>
@@ -166,6 +241,7 @@ function App() {
             <span><b>{userInfo?.name}</b>님 ({userInfo?.department})</span>
             <div className="header-buttons">
               <button onClick={() => setShowGuideModal(true)} className="keyword-btn">🔑 키워드 설정</button>
+              <button onClick={() => setIsMyPage(true)} className="mypage-btn" style={{marginRight: '10px'}}>👤 마이페이지</button>
               <button onClick={() => setIsLoggedIn(false)} className="logout-btn">로그아웃</button>
             </div>
           </div>
@@ -232,6 +308,12 @@ function App() {
             <option value="AI융합대학">AI융합대학</option>
             <option value="경북대 학사공지">경북대 학사공지</option>
           </select>
+          <textarea 
+            name="experience" 
+            placeholder="활동 이력 및 관심 분야 (선택)" 
+            rows="3" 
+            style={{width: '100%', marginTop: '10px', padding: '10px'}}
+          />
           <button type="submit">회원가입</button>
           <p onClick={() => setIsRegisterMode(false)} className="toggle-link">이미 계정이 있나요? 로그인</p>
         </form>

@@ -8,7 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your_super_secret_key'; // .env에
 
 // 1. 회원가입: 비밀번호 해싱 적용
 router.post('/register', async (req, res) => {
-   const { student_id, password, name, grade, department } = req.body;
+   const { student_id, password, name, grade, department, experience_summary } = req.body;
 
     const client = await pool.connect(); // 트랜잭션을 위해 클라이언트 연결
     try {
@@ -23,8 +23,8 @@ router.post('/register', async (req, res) => {
 
         // 회원 정보 저장
         await client.query(
-            "INSERT INTO users (student_id, password, name, grade, department) VALUES ($1, $2, $3, $4, $5)",
-            [student_id, password, name, grade, department]
+            "INSERT INTO users (student_id, password, name, grade, department, experience_summary) VALUES ($1, $2, $3, $4, $5, $6)",
+            [student_id, password, name, grade, department, experience_summary]
         );
 
         await client.query('COMMIT'); // 성공 시 커밋
@@ -79,6 +79,31 @@ router.post('/reset-password', async (req, res) => {
         }
     } catch (e) {
         res.json({ success: false, message: e.message });
+    }
+});
+
+// 4. 회원 정보 수정 (마이페이지용)
+router.post('/update', async (req, res) => {
+    const { student_id, name, grade, department, experience_summary } = req.body;
+
+    try {
+        const result = await pool.query(
+            `UPDATE users 
+             SET name = $1, grade = $2, department = $3, experience_summary = $4 
+             WHERE student_id = $5 RETURNING *`,
+            [name, grade, department, experience_summary, student_id]
+        );
+
+        if (result.rows.length > 0) {
+            const updatedUser = result.rows[0];
+            delete updatedUser.password;
+            res.json({ success: true, message: "정보가 수정되었습니다.", user: updatedUser });
+        } else {
+            res.json({ success: false, message: "업데이트 실패" });
+        }
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ success: false, message: "서버 에러" });
     }
 });
 
