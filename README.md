@@ -1,19 +1,43 @@
-# KNU Notice Crawler
-### 경북대학교(컴퓨터학부, 전자공학부, AI융합대학, 학사공지)의 공지사항을 통합 수집하는 크롤러입니다.
-### 크롤러를 작동시키기 위한 사전 준비 단계
-## 1. 라이브러리 및 브라우저 설치
-프로젝트에 사용된 crawlee(크롤링 프레임워크), pg(데이터베이스), dotenv(환경변수)를 설치
+# KNU Notice (경북대학교 공지사항 수집기)
+
+> **경북대학교(컴퓨터학부, 전자공학부, AI융합대학, 학사공지)의 공지사항을 통합 수집하고, AI를 활용해 사용자 맞춤형 추천을 제공하는 웹 서비스입니다.**
+
+---
+
+## 🛠️ 주요 기능
+* **통합 크롤링**: 여러 학과의 공지사항을 한곳에서 수집 (Crawlee & Playwright 활용)
+* **AI 공지 분석**: Google Gemini API를 활용하여 공지사항 내용을 분석 및 요약
+* **맞춤 추천**: 사용자의 정보(학과, 학년, 경험 등)를 기반으로 중요 공지사항 추천 (AI Score 산정)
+* **웹 대시보드**: 수집된 공지사항과 추천 목록을 확인할 수 있는 웹 인터페이스 제공
+
+---
+
+## 🚀 시작하기 (Getting Started)
+
+프로젝트를 로컬 환경에서 실행하기 위한 단계별 가이드입니다.
+
+### 1. 사전 요구 사항 (Prerequisites)
+* Node.js
+* PostgreSQL Database
+* Git
+
+### 2. 설치 (Installation)
+
+이 프로젝트는 **Backend**와 **Frontend**가 분리되어 있습니다. 각각 의존성을 설치해야 합니다.
+
+#### Backend 설정
 ```bash
-npm install crawlee pg dotenv
-```
-Playwright가 사용하는 전용 브라우저(Chromium 등)를 다운로드하는 명령어
-```bash
+# 1. 필수 라이브러리 설치 (crawlee, pg, dotenv, google-genai 등)
+npm install crawlee pg dotenv @google/genai express cors
+
+# 2. Playwright 브라우저 설치 (크롤러 작동용)
 npx playwright install
 ```
-
-제미나이 API 다운로드
-
-## 2. 데이터베이스 테이블 생성
+#### Frontend 설정
+```bash
+npm install
+```
+#### 데이터베이스 설정
 ```bash
 CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,              
@@ -51,23 +75,42 @@ CREATE TABLE IF NOT EXISTS user_recommendations (
         PRIMARY KEY (user_id, notice_id)
       );
 ```
-## 3. .env 파일을 생성하고 다음 내용을 입력
+#### 환경변수 설정 (.env)
+backend 폴더와 clawler 폴더 내에 각각 .env 파일을 생성하고 다음 내용을 입력합니다.
 ```bash
+# Database Configuration
 DB_USER=postgres
 DB_HOST=localhost
-DB_NAME=[생성한 DB 이름]
+DB_NAME=[생성한 DB 이름, 예: knu_notice_db]
 DB_PASSWORD=[본인의 postgreSQL 비밀번호]
 DB_PORT=5432
-GEMINI_API_KEY=제미나이 키값
-PORT = 5000
 
+# Server Configuration
+PORT=5000
+
+# API Keys
+GEMINI_API_KEY=[Google Gemini API 키값]
 ```
-## 실행
+
+### 3. 실행 (Run)
+크롤링 및 백엔드 서버와 프론트엔드 서버를 각각 순서대로 실행합니다.
+1) 크롤러 실행 (clawler 폴더 내에서)
+```bash
+npm start
+```
+2) 백엔드 서버 실행 (backend 폴더 내에서)
+```bash
+npm start
+```
+1) 프론트엔드 서버 실행 (frontend 폴더 내에서)
 ```bash
 npm start
 ```
 
-26/01/28 01:16 수정사항: 백엔드 프론트엔드 통합, 백엔드 데이터 베이스 & 라우팅, 프론트엔드 API 사용법, 키워드 쿼리화 & 디자인 ,, 크롤러는 backend 파일 내부에 넣어 놨습니다. 
+/
+
+26/01/28 01:16 수정사항: 백엔드 프론트엔드 통합, 백엔드 데이터 베이스 & 라우팅, 프론트엔드 API 사용법, 키워드 쿼리화 & 디자인 ,, 크롤러는 backend 파일 내부에 넣어 놨습니다.
 
 해야할 사항: 추가적인 기능 넣기, 보안 요소 추가
-* 부가적인 기능 설치는 backend package.json 보고 추가 install 하시면 될 것 같습니다.
+
+/
