@@ -1,5 +1,7 @@
 import express from 'express';
 import { pool } from '../db.js';
+import authenticateToken from '../middleware/auth.js';
+import { validateKeywords, validateId } from '../middleware/validator.js';
 
 const router = express.Router();
 
@@ -84,19 +86,26 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.post('/update-keywords', async (req, res) => {
-    const { student_id, keywords } = req.body; // keywords는 배열([]) 형태여야 함
+router.post('/update-keywords', authenticateToken, async (req, res) => {
+    const { keywords } = req.body; // keywords는 배열([]) 형태여야 함
+    const userId = req.user.id; // 토큰에서 사용자 ID 가져오기
+
+    // 입력 검증
+    const keywordsValidation = validateKeywords(keywords);
+    if (!keywordsValidation.valid) {
+        return res.status(400).json({ success: false, message: keywordsValidation.message });
+    }
 
     try {
         // DB 컬럼이 TEXT[] 타입이면 JS 배열을 그대로 넣으면 됩니다.
         await pool.query(
-            "UPDATE users SET keywords = $1 WHERE student_id = $2",
-            [keywords, student_id]
+            "UPDATE users SET keywords = $1 WHERE id = $2",
+            [keywordsValidation.value, userId]
         );
         res.json({ success: true });
     } catch (e) {
         console.error(`키워드 업데이트 에러: ${e.message}`);
-        res.json({ success: false, message: e.message });
+        res.status(500).json({ success: false, message: e.message });
     }
 });
 

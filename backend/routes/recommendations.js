@@ -1,20 +1,26 @@
 import express from 'express';
 import { pool } from '../db.js'; // DB 설정 파일 경로에 맞게 수정
 import { getSingleRecommendation, generateUserProfileHash } from '../services/recommendationService.js';
+import authenticateToken from '../middleware/auth.js';
+import { validateId } from '../middleware/validator.js';
 
 const router = express.Router();
 
-router.post('/analyze', async (req, res) => {
-  const { userId, noticeId } = req.body;
+router.post('/analyze', authenticateToken, async (req, res) => {
+  const { noticeId } = req.body;
+  const userId = req.user.id; // 토큰에서 사용자 ID 가져오기
 
   try {
     // 0. 입력값 검증
-    if (userId == null || noticeId == null) {
+    const noticeIdValidation = validateId(noticeId, 'noticeId');
+    if (!noticeIdValidation.valid) {
       return res.status(400).json({
         success: false,
-        message: 'userId, noticeId가 필요합니다.'
+        message: noticeIdValidation.message
       });
     }
+    
+    const validNoticeId = noticeIdValidation.value;
 
     // 1. 사용자 데이터 조회 (프로필 해시 생성에 필요)
     const userRes = await pool.query(
@@ -48,12 +54,12 @@ router.post('/analyze', async (req, res) => {
       console.log(`[재분석] 사용자 프로필이 변경되어 기존 분석 결과를 무효화합니다. (user_id: ${userId})`);
       await pool.query(
         'DELETE FROM user_recommendations WHERE user_id = $1 AND notice_id = $2',
-        [userId, noticeId]
+        [userId, validNoticeId]
       );
     }
 
     // 4. 공지사항 데이터 조회
-    const noticeRes = await pool.query('SELECT content FROM knu_notices WHERE id = $1', [noticeId]);
+    const noticeRes = await pool.query('SELECT content FROM knu_notices WHERE id = $1', [validNoticeId]);
 
     if (!noticeRes.rows[0]) {
       return res.status(404).json({ success: false, message: '해당 noticeId의 공지사항을 찾을 수 없습니다.' });
@@ -85,9 +91,9 @@ router.post('/analyze', async (req, res) => {
   }
 });
 
-// 사용자의 모든 분석 이력 조회
-router.get('/history/:userId', async (req, res) => {
-  const { userId } = req.params;
+// 사용자의 모든 분석 이력 조회 - 인증 필요
+router.get('/history', authenticateToken, async (req, res) => {
+  const userId = req.user.id; // 토큰에서 사용자 ID 가져오기
 
   try {
     const result = await pool.query(`
@@ -116,14 +122,24 @@ router.get('/history/:userId', async (req, res) => {
   }
 });
 
-// 특정 분석 결과 삭제
-router.delete('/:userId/:noticeId', async (req, res) => {
-  const { userId, noticeId } = req.params;
+// 특정 분석 결과 삭제 - 인증 필요
+router.delete('/:noticeId', authenticateToken, async (req, res) => {
+  const { noticeId } = req.params;
+  const userId = req.user.id; // 토큰에서 사용자 ID 가져오기
+
+  // 입력 검증
+  const noticeIdValidation = validateId(noticeId, 'noticeId');
+  if (!noticeIdValidation.valid) {
+    return res.status(400).json({
+      success: false,
+      message: noticeIdValidation.message
+    });
+  }
 
   try {
     const result = await pool.query(
       'DELETE FROM user_recommendations WHERE user_id = $1 AND notice_id = $2',
-      [userId, noticeId]
+      [userId, noticeIdValidation.value]
     );
 
     if (result.rowCount > 0) {
