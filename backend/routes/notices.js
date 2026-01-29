@@ -41,12 +41,42 @@ router.post('/bulk', async (req, res) => {
 
 router.get('/', async (req, res) => {
   try {
-        const query = `
-            SELECT source as dept, title, link, post_date as date 
-            FROM knu_notices 
-            ORDER BY post_date DESC, id DESC
+        const userId = req.query.userId; // 선택적: userId가 있으면 분석 결과도 포함
+        
+        let query = `
+            SELECT 
+              n.id, 
+              n.source as dept, 
+              n.title, 
+              n.link, 
+              n.post_date as date
         `;
-        const result = await pool.query(query);
+        
+        // userId가 있으면 분석 결과도 함께 조회
+        if (userId) {
+          query += `,
+              ur.ai_score,
+              ur.ai_reason,
+              CASE WHEN ur.notice_id IS NOT NULL THEN true ELSE false END as is_analyzed
+          `;
+        }
+        
+        query += `
+            FROM knu_notices n
+        `;
+        
+        if (userId) {
+          query += `
+            LEFT JOIN user_recommendations ur ON n.id = ur.notice_id AND ur.user_id = $1
+          `;
+        }
+        
+        query += `
+            ORDER BY n.post_date DESC, n.id DESC
+        `;
+        
+        const params = userId ? [userId] : [];
+        const result = await pool.query(query, params);
         res.json(result.rows);
     } catch (e) {
         console.error(`공지사항 조회 에러: ${e.message}`);

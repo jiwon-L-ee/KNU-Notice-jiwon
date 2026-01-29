@@ -86,24 +86,48 @@ router.post('/reset-password', async (req, res) => {
 router.post('/update', async (req, res) => {
     const { student_id, name, grade, department, experience_summary } = req.body;
 
+    const client = await pool.connect();
     try {
-        const result = await pool.query(
+        await client.query('BEGIN');
+
+        // 1. 사용자 정보 업데이트
+        const result = await client.query(
             `UPDATE users 
              SET name = $1, grade = $2, department = $3, experience_summary = $4 
-             WHERE student_id = $5 RETURNING *`,
+             WHERE student_id = $5 RETURNING id, *`,
             [name, grade, department, experience_summary, student_id]
         );
 
-        if (result.rows.length > 0) {
-            const updatedUser = result.rows[0];
-            delete updatedUser.password;
-            res.json({ success: true, message: "정보가 수정되었습니다.", user: updatedUser });
-        } else {
-            res.json({ success: false, message: "업데이트 실패" });
+        if (result.rows.length === 0) {
+            await client.query('ROLLBACK');
+            return res.json({ success: false, message: "업데이트 실패" });
         }
+
+        const updatedUser = result.rows[0];
+        const userId = updatedUser.id;
+
+        // 2. 회원 정보 수정 시 기존 분석 결과 모두 삭제
+        const deleteResult = await client.query(
+            'DELETE FROM user_recommendations WHERE user_id = $1',
+            [userId]
+        );
+
+        console.log(`[회원 정보 수정] 사용자 ID ${userId}의 분석 결과 ${deleteResult.rowCount}개 삭제됨`);
+
+        await client.query('COMMIT');
+
+        delete updatedUser.password;
+        res.json({ 
+            success: true, 
+            message: "정보가 수정되었습니다. 기존 분석 결과가 초기화되었습니다.", 
+            user: updatedUser 
+        });
     } catch (e) {
+        await client.query('ROLLBACK');
         console.error(e);
         res.status(500).json({ success: false, message: "서버 에러" });
+    } finally {
+        client.release();
     }
 });
 

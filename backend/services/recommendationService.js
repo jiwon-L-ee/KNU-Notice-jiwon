@@ -1,4 +1,15 @@
 import genAI, { aiModels } from './gemini.js';
+import crypto from 'crypto';
+
+/**
+ * 사용자 프로필 정보를 기반으로 해시 생성
+ * grade, department, experience_summary가 변경되면 해시도 변경됨
+ */
+export const generateUserProfileHash = (userData) => {
+  const { grade = '', department = '', experience_summary = '' } = userData;
+  const profileString = `${grade}|${department}|${experience_summary}`;
+  return crypto.createHash('sha256').update(profileString).digest('hex');
+};
 
 export const getSingleRecommendation = async (userData, noticeContent) => {
   const { grade, department, experience_summary } = userData;
@@ -39,7 +50,20 @@ export const getSingleRecommendation = async (userData, noticeContent) => {
       throw new Error("AI 응답 데이터 형식이 올바르지 않습니다.");
     }
 
-    return JSON.parse(jsonMatch[0]);
+    const parsed = JSON.parse(jsonMatch[0]);
+
+    // 응답 검증: score/reason이 없거나 형식이 잘못되면 저장/캐시하지 않도록 즉시 실패 처리
+    const score = Number(parsed?.score);
+    const reason = typeof parsed?.reason === 'string' ? parsed.reason.trim() : '';
+
+    if (!Number.isInteger(score) || score < 0 || score > 100) {
+      throw new Error('AI 응답 score가 0~100 정수가 아닙니다.');
+    }
+    if (!reason) {
+      throw new Error('AI 응답 reason이 비어 있습니다.');
+    }
+
+    return { score, reason };
 
   } catch (error) {
     // 2. 여기서 객체를 return 하지 마세요. 에러를 그대로 위(라우터)로 보냅니다.

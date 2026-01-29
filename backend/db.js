@@ -57,10 +57,24 @@ export const initDb = async () => {
         notice_id INT REFERENCES knu_notices(id) ON DELETE CASCADE,
         ai_score INT DEFAULT 0,
         ai_reason TEXT,
+        user_profile_hash VARCHAR(64),
         calculated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (user_id, notice_id)
       );
     `);
+
+    // user_profile_hash 컬럼이 없으면 추가 (기존 DB 마이그레이션)
+    try {
+      await client.query(`
+        ALTER TABLE user_recommendations 
+        ADD COLUMN IF NOT EXISTS user_profile_hash VARCHAR(64);
+      `);
+    } catch (err) {
+      // 컬럼이 이미 존재하면 무시
+      if (!err.message.includes('already exists')) {
+        throw err;
+      }
+    }
 
     await client.query('COMMIT');
     console.log('[DB] 모든 테이블이 동기화되어 성공적으로 준비되었습니다.');
