@@ -3,10 +3,6 @@
  * @description Input validation and sanitization middleware
  */
 
-/**
- * 입력값 검증 및 sanitization 유틸리티
- */
-
 // SQL Injection 및 XSS 방지를 위한 기본 sanitization
 export const sanitizeInput = (input) => {
   if (typeof input !== 'string') return input;
@@ -28,25 +24,22 @@ export const validateStudentId = (studentId) => {
     return { valid: false, message: '학번은 숫자만 입력 가능합니다.' };
   }
   
-  if (trimmed.length < 4 || trimmed.length > 20) {
-    return { valid: false, message: '학번은 4자 이상 20자 이하여야 합니다.' };
+  // 길이 제한 (2~30자 정도 체크)
+  if (trimmed.length < 2 || trimmed.length > 30) {
+    return { valid: false, message: '학번은 2자 이상 30자 이하여야 합니다.' };
   }
   
   return { valid: true, value: trimmed };
 };
 
-// 비밀번호 검증
+// 비밀번호 검증 (최소 길이만 간단히 체크)
 export const validatePassword = (password) => {
   if (!password || typeof password !== 'string') {
     return { valid: false, message: '비밀번호가 필요합니다.' };
   }
   
-  if (password.length < 6) {
-    return { valid: false, message: '비밀번호는 최소 6자 이상이어야 합니다.' };
-  }
-  
-  if (password.length > 100) {
-    return { valid: false, message: '비밀번호는 100자 이하여야 합니다.' };
+  if (password.length < 4) {
+    return { valid: false, message: '비밀번호는 최소 4자 이상이어야 합니다.' };
   }
   
   return { valid: true, value: password };
@@ -63,11 +56,7 @@ export const validateName = (name) => {
     return { valid: false, message: '이름은 1자 이상 50자 이하여야 합니다.' };
   }
   
-  // 특수문자 제한 (한글, 영문, 공백만 허용)
-  if (!/^[가-힣a-zA-Z\s]+$/.test(trimmed)) {
-    return { valid: false, message: '이름은 한글, 영문, 공백만 입력 가능합니다.' };
-  }
-  
+  // 특수문자
   return { valid: true, value: trimmed };
 };
 

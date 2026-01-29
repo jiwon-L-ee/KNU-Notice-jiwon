@@ -9,7 +9,6 @@
 - ✅ **JWT 인증 시스템**: 로그인 시 JWT 토큰 발행 및 토큰 기반 인증 구현
 - ✅ **인증 미들웨어**: 보호가 필요한 API 엔드포인트에 인증 적용
 - ✅ **CORS 설정 개선**: 특정 origin만 허용하도록 보안 강화
-- ✅ **Rate Limiting**: 브루트포스 공격 방지를 위한 요청 제한 적용
 - ✅ **입력 검증 및 Sanitization**: SQL Injection 및 XSS 공격 방지
 - ✅ **환경 변수 보안**: `.env` 파일 요소 변경
 
@@ -201,20 +200,13 @@ Authorization: Bearer JWT_TOKEN
 
 ## 🛡️ 보안 기능
 
-### Rate Limiting
-- **일반 요청**: 15분당 최대 100회
-- **인증 요청** (로그인/회원가입): 15분당 최대 5회
-
 ### 입력 검증
-- 학번: 숫자만 허용, 4-20자
-- 비밀번호: 최소 6자 이상
-- 이름: 한글/영문/공백만 허용
+- 학번: 숫자만 허용
+- 비밀번호: 최소 4자 이상
 - 키워드: 최대 3개까지
 
 ### 보안 미들웨어
 - `authenticateToken`: JWT 토큰 검증
-- `rateLimiter`: 요청 제한
-- `authRateLimiter`: 인증 엔드포인트 요청 제한
 - `validator`: 입력 검증 및 sanitization
 
 ## 📁 프로젝트 구조
@@ -225,7 +217,6 @@ KNU-Notice/
 │   ├── middleware/
 │   │   ├── auth.js          # JWT 인증 미들웨어
 │   │   ├── logger.js         # 요청 로깅 미들웨어
-│   │   ├── rateLimiter.js    # Rate limiting 미들웨어
 │   │   └── validator.js      # 입력 검증 및 sanitization
 │   ├── routes/
 │   │   ├── auth.js           # 인증 관련 라우트
@@ -239,7 +230,7 @@ KNU-Notice/
 │   │   └── knu_crawler.js    # 크롤러 스크립트
 │   ├── db.js                 # 데이터베이스 설정
 │   ├── index.js              # Express 서버 진입점
-│   └── .env.example         # 환경 변수 예제
+│   └── .env                  # 환경 변수 예제
 ├── frontend/
 │   └── src/                  # React 프론트엔드
 └── README.md
@@ -255,11 +246,3 @@ KNU-Notice/
 2. **데이터베이스**:
    - 기존 사용자의 비밀번호는 평문으로 저장되어 있을 수 있음
    - 비밀번호 재설정을 통해 해시된 비밀번호로 업데이트 권장
-
-3. **Rate Limiting**:
-   - 현재는 메모리 기반으로 구현됨
-   - 프로덕션 환경에서는 Redis 사용 권장
-
-## 📝 라이선스
-
-ISC

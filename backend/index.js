@@ -2,7 +2,6 @@ import { initDb } from './db.js';
 import express from 'express';
 import dotenv from 'dotenv';
 import logger from './middleware/logger.js'; 
-import { rateLimiter } from './middleware/rateLimiter.js';
 import authRouter from './routes/auth.js';
 import noticeRouter from './routes/notices.js';
 import recoRouter from './routes/recommendations.js';
@@ -37,7 +36,6 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' })); // 요청 크기 제한
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(logger);
-app.use(rateLimiter); // 전역 rate limiting 적용 
 
 app.use('/auth', authRouter);           
 app.use('/notices', noticeRouter);       

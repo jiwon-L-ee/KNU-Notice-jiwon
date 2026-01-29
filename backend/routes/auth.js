@@ -3,15 +3,14 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { pool } from '../db.js';
 import authenticateToken from '../middleware/auth.js';
-import { authRateLimiter } from '../middleware/rateLimiter.js';
 import { validateStudentId, validatePassword, validateName } from '../middleware/validator.js';
 
 const router = express.Router();
 // JWT_SECRET_KEY와 일치시킴 (auth.js middleware와 동일한 환경 변수 사용)
 const JWT_SECRET = process.env.JWT_SECRET_KEY || process.env.JWT_SECRET || 'your_super_secret_key';
 
-// 1. 회원가입: 비밀번호 해싱 적용 (Rate limiting 적용)
-router.post('/register', authRateLimiter, async (req, res) => {
+// 1. 회원가입: 비밀번호 해싱 적용
+router.post('/register', async (req, res) => {
    const { student_id, password, name, grade, department, experience_summary } = req.body;
 
     // 입력 검증
@@ -67,8 +66,8 @@ router.post('/register', authRateLimiter, async (req, res) => {
     }
 });
 
-// 2. 로그인: 해시 비교 및 토큰 발행 (Rate limiting 적용)
-router.post('/login', authRateLimiter, async (req, res) => {
+// 2. 로그인: 해시 비교 및 토큰 발행
+router.post('/login', async (req, res) => {
     const { student_id, password } = req.body;
     
     // 입력 검증
@@ -124,8 +123,8 @@ router.post('/login', authRateLimiter, async (req, res) => {
     }
 });
 
-// 3. 비밀번호 재설정: 해싱 적용 (Rate limiting 적용)
-router.post('/reset-password', authRateLimiter, async (req, res) => {
+// 3. 비밀번호 재설정: 해싱 적용
+router.post('/reset-password', async (req, res) => {
     const { student_id, new_password } = req.body;
 
     // 입력 검증

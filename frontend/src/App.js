@@ -4,6 +4,7 @@ import './App.css';
 function App() {
   // --- 상태 관리 (기존과 동일) ---
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [authToken, setAuthToken] = useState(null); // JWT 토큰 저장
   const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [isResetMode, setIsResetMode] = useState(false);
   const [isMyPage, setIsMyPage] = useState(false);
@@ -89,8 +90,14 @@ function App() {
       .then(res => res.json())
       .then(data => {
         if (data.success) {
+          // 로그인 성공 시 JWT 토큰과 사용자 정보 저장
           setIsLoggedIn(true);
           setUserInfo(data.user);
+          if (data.token) {
+            setAuthToken(data.token);
+            // 필요하다면 새로고침 이후에도 유지 가능
+            // localStorage.setItem('authToken', data.token);
+          }
         } else {
           alert(data.message);
         }
@@ -156,7 +163,10 @@ function App() {
 
     fetch('http://127.0.0.1:5000/auth/update', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {})
+      },
       body: JSON.stringify(formData),
     })
     .then(res => res.json())
@@ -258,8 +268,12 @@ function App() {
     try {
       const response = await fetch('http://127.0.0.1:5000/recommendations/analyze', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: userInfo.id, noticeId })
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {})
+        },
+        // 서버는 토큰에서 userId를 읽으므로 noticeId만 전송
+        body: JSON.stringify({ noticeId })
       });
 
       const data = await response.json();
@@ -287,7 +301,9 @@ function App() {
     if (!userInfo?.id) return;
     
     try {
-      const response = await fetch(`http://127.0.0.1:5000/recommendations/history/${userInfo.id}`);
+      const response = await fetch('http://127.0.0.1:5000/recommendations/history', {
+        headers: authToken ? { Authorization: `Bearer ${authToken}` } : {}
+      });
       const data = await response.json();
       if (data.success) {
         setAnalysisHistory(data.data);
@@ -319,8 +335,9 @@ function App() {
     }
 
     try {
-      const response = await fetch(`http://127.0.0.1:5000/recommendations/${userInfo.id}/${noticeId}`, {
-        method: 'DELETE'
+      const response = await fetch(`http://127.0.0.1:5000/recommendations/${noticeId}`, {
+        method: 'DELETE',
+        headers: authToken ? { Authorization: `Bearer ${authToken}` } : {}
       });
       
       const data = await response.json();
