@@ -270,7 +270,7 @@ function App() {
             </div>
 
             <div className="sidebar-group">
-                <h3>📅 날짜 조회</h3>
+                <h3>📅 게시일 조회</h3>
                 <label className="date-label">시작일</label>
                 <input 
                     type="date" 
@@ -293,7 +293,7 @@ function App() {
             </div>
 
             <div className="sidebar-group">
-                <h3>🔑 키워드 알림</h3>
+                <h3>🔑 키워드 설정</h3>
                 <div className="keyword-display">
                     {selectedKeywords.length > 0 ? (
                         selectedKeywords.map(k => <span key={k} className="mini-tag">{k}</span>)
@@ -301,7 +301,7 @@ function App() {
                         <p className="no-keyword-msg">설정된 키워드 없음</p>
                     )}
                 </div>
-                <button onClick={() => setShowGuideModal(true)} className="keyword-btn-small">키워드 설정</button>
+                <button onClick={() => setShowGuideModal(true)} className="keyword-btn-small">키워드 설정하기</button>
             </div>
           </aside>
 
@@ -389,7 +389,7 @@ function App() {
         </form>
       ) : (
         <form className="login-box" onSubmit={handleLogin}>
-          <h2>KNU 공지사항</h2>
+          <h2>KNU 맞춤형 공지사항 종합</h2>
           <input name="sid" placeholder="학번" required />
           <input name="pw" type="password" placeholder="비밀번호" required />
           <button type="submit">로그인</button>

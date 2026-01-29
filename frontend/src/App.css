@@ -24,14 +24,15 @@ body {
    2. 로그인 / 회원가입 / 마이페이지 (Auth)
    ========================================= */
 .auth-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; 
+  height: 100%;
   background: linear-gradient(135deg, #f5f7fa 0%, #e8ebee 100%);
-  box-sizing: border-box;
-  padding: 20px;
-  overflow-y: auto; /* 내용이 넘치면 스크롤 */
+  overflow-y: auto; 
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 배경 로고 오버레이 */
@@ -54,11 +55,18 @@ body {
   border-radius: 20px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 420px;
+  max-width: 500px;
   display: flex;
   flex-direction: column;
   gap: 1.2rem;
+  margin: auto; 
+  margin-top: 60px;
+  margin-bottom: 60px;
+  height: auto; 
+  flex-shrink: 0;
+  box-sizing: border-box;
   animation: fadeIn 0.5s ease-in-out;
+  position: relative;
 }
 
 @keyframes fadeIn {
@@ -87,6 +95,7 @@ body {
   font-family: inherit;
   box-sizing: border-box;
   transition: all 0.2s;
+  background-color: #fff;
 }
 
 .login-box textarea {
@@ -123,6 +132,7 @@ body {
   cursor: pointer;
   transition: all 0.2s;
   margin-top: 10px;
+  box-sizing: border-box;
 }
 
 .login-box button:hover {
