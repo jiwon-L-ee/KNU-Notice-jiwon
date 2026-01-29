@@ -625,7 +625,7 @@ function App() {
                             <span className={`dept-tag ${notice.dept === '경북대 학사공지' ? 'global' : 'major'}`}>
                                 {notice.dept}
                             </span>
-                            {hasKeyword && <span className="keyword-badge" style={{ marginLeft: '8px' }}>⭐ 관심</span>}
+                            {hasKeyword && <span className="keyword-badge" style={{ marginLeft: '8px' }}>🔥 관심 키워드</span>}
                             {isAnalyzed && (
                               <span className="analyzed-badge">✓ 분석 완료</span>
                             )}
